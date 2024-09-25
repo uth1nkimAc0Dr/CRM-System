@@ -19,13 +19,13 @@ const createTaskHandler = async () => {
     return;
   }
 
-  const newTodo: TodoRequest = {
+  const updatedTodo: TodoRequest = {
     title: newTaskTitle.value,
     isDone: false,
   };
 
   try {
-    await createTask(newTodo);
+    await createTask(updatedTodo);
     emit('addTask');
   } catch (error) {
     // console.error('createTaskHandler error is', error);
