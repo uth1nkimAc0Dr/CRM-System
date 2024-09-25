@@ -1,80 +1,103 @@
-const baseURL = 'https://easydev.club/api/v1';
+const BASE_URL = 'https://easydev.club/api/v1';
+import type { MetaResponse, Todo, TodoInfo, TodoRequest } from '@/types/types';
 
-export const getTasks = async (filter: string) => {
+// остальные не нужно также переписывать с Promise<>?
+export const createTask = async (newTodo: TodoRequest): Promise<Todo | any> => {
   try {
-    const response = await fetch(`${baseURL}/todos?filter=${filter}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.log('getTaskError is', error);
-  }
-};
-
-export const createTask = async (title: string) => {
-  try {
-    const response = await fetch(`${baseURL}/todos`, {
+    const response = await fetch(`${BASE_URL}/todos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ isDone: false, title: title }),
+      // body: JSON.stringify({ isDone: false, title: title }),
+      body: JSON.stringify(newTodo),
+      //  as TodoRequest
     });
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
     }
-    const data = await response.json();
-    console.log(data);
+
+    // const data = (await response.json()) as Todo;
+    // console.log(data);
+    // смысла await'ить response нету, получается?
   } catch (error) {
     console.log('createTaskError is', error);
-  }
-};
-
-export const removeTask = async (id: number) => {
-  try {
-    const response = await fetch(`${baseURL}/todos/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
-  } catch (error) {
-    console.log('removeTaskError is', error);
+    throw error;
   }
 };
 
 export const changeTask = async (
   id: number,
-  isDone: boolean,
-  newTitle: string,
-) => {
+  newTodo: TodoRequest,
+): Promise<Todo | any> => {
   try {
-    const response = await fetch(`${baseURL}/todos/${id}`, {
+    const response = await fetch(`${BASE_URL}/todos/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ isDone: isDone, title: newTitle }),
+      body: JSON.stringify(newTodo),
     });
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log(data);
+    // const data = await response.json();
+    // console.log(data);
+    // в этом также нету смысла, удалить?
   } catch (error) {
     console.log('changeTaskError is', error);
+    throw error;
+  }
+};
+
+//Если пишу ": Promise<Todo>", то ошибка:
+// A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
+export const removeTask = async (id: number): Promise<void> => {
+  try {
+    const response = await fetch(`${BASE_URL}/todos/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+    return;
+  } catch (error) {
+    console.log('removeTaskError is', error);
+    throw error;
+  }
+};
+
+export const getTasks = async (
+  filter: 'all' | 'completed' | 'inWork',
+): Promise<MetaResponse<Todo, TodoInfo>> => {
+  try {
+    let query = '';
+    if (filter) {
+      query = `?filter=${encodeURIComponent(filter)}`;
+    }
+
+    const response = await fetch(`${BASE_URL}/todos${query}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    const data = (await response.json()) as MetaResponse<Todo, TodoInfo>;
+    return data;
+  } catch (error) {
+    console.log('getTaskError is', error);
+    throw error;
   }
 };

@@ -4,7 +4,7 @@
       <input
         type="checkbox"
         v-model="localTask.isDone"
-        @click="isCompletedHandler(localTask.isDone)"
+        @click="() => ChangeCompletedHandler(localTask.isDone)"
       />
     </div>
 
@@ -15,26 +15,22 @@
     <div class="buttons-container">
       <div class="edit-buttons-container">
         <div v-if="isEditing">
-          <button @click="switchEditing()">edit</button>
+          <button @click="switchEditing">edit</button>
         </div>
 
         <div v-if="!isEditing" class="save-cancel-panel">
           <div class="save-button-container">
-            <button
-              @click="switchEditing(), changeTaskHandler(localTask.title)"
-            >
-              Сохранить
-            </button>
+            <button @click="saveTaskhandler">Сохранить</button>
           </div>
 
           <div class="cancel-button-container">
-            <button @click="switchEditing()">Отменить</button>
+            <button @click="resetTaskHandler">Отменить</button>
           </div>
         </div>
       </div>
 
       <div class="remove-button-container">
-        <button type="button" @click="removeTaskHandler(localTask.id)">
+        <button type="button" @click="() => removeTaskHandler(localTask.id)">
           delete
         </button>
       </div>
@@ -45,45 +41,71 @@
 <script lang="ts" setup>
 import { ref, defineProps, reactive } from 'vue';
 import { changeTask, removeTask } from '@/api';
-import type { ToDo } from '@/types/types';
+import type { Todo, TodoRequest } from '@/types/types';
 
 const isEditing = ref<boolean>(true);
-const emit = defineEmits([
-  'removeTaskHandler',
-  'changeTaskHandler',
-  'isCompletedHandler',
-]);
+const emit = defineEmits(['remove', 'change', 'changeCompleted']);
+const props = defineProps<{ task: Todo }>();
 
-const props = defineProps<{ task: ToDo }>();
-const localTask = reactive<ToDo>({ ...props.task });
+const localTask = reactive<Todo>({ ...props.task });
 
+//удаление задачи через "delete"
 const removeTaskHandler = async (id: number) => {
-  await removeTask(id);
-  emit('removeTaskHandler');
-};
-
-const isCompletedHandler = async (isDone: boolean) => {
-  await changeTask(localTask.id, !isDone, localTask.title);
-  emit('isCompletedHandler');
-};
-
-// имеет ли смысл передавать что-то в эту функцию, если v-model копии. Можно просто async()
-const changeTaskHandler = async (title: string) => {
-  console.log('local', localTask.title);
-  console.log('props is', props.task.title);
-  if (props.task.title != title) {
-    await changeTask(localTask.id, localTask.isDone, title);
-    emit('changeTaskHandler');
+  try {
+    await removeTask(id);
+  } catch (error) {
+    console.error('Error removing task', error);
   }
+  emit('remove');
+};
+
+// при "отменить" мы возвращаем оригинальный title
+const resetTaskHandler = () => {
+  switchEditing();
+  localTask.title = props.task.title;
+};
+
+// при "сохранить" мы пушим новый title
+const saveTaskhandler = () => {
+  switchEditing(), changeTaskHandler(localTask.title);
 };
 
 const switchEditing = () => {
   isEditing.value = !isEditing.value;
 };
+
+//изменяю для задачи только title
+const changeTaskHandler = async (title: string) => {
+  const newTodo: TodoRequest = { title: title };
+  //меняю только title, поэтому только title засовываю и передаю
+  if (props.task.title != title) {
+    try {
+      await changeTask(localTask.id, newTodo);
+    } catch (error) {
+      console.error('Error changing task', error);
+    }
+    emit('change');
+  }
+};
+
+// изменяю для задачи завершенность
+const ChangeCompletedHandler = async (isDone: boolean) => {
+  const newTodo: TodoRequest = { isDone: !isDone };
+  //в данном случае для вызова changeTask мне похуй на title, так как я работаю с isDone,
+  //поэтому в аргументах его не передаю
+  try {
+    await changeTask(localTask.id, newTodo);
+  } catch (error) {
+    console.error('error changing complete', error);
+  }
+  emit('changeCompleted');
+  // эмиты ставить ниже catch?
+};
 </script>
 
 <style lang="scss">
 .task-item {
+  // задать одинаковые ширины дочеркам
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -101,6 +123,8 @@ const switchEditing = () => {
   .buttons-container {
     display: flex;
     flex-direction: row;
+    gap: 10px;
+    // width: 50px;
     // margin-right: 40px;
 
     .edit-buttons-container {

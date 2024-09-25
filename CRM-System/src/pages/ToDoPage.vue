@@ -5,24 +5,24 @@
     <nav>
       <button
         type="button"
-        @click="changeFilter('all')"
-        :class="{ active: currentFilter == 'all' }"
+        @click="() => changeFilterHandler('all')"
+        :class="{ active: currentFilter === 'all' }"
       >
         All
       </button>
 
       <button
         type="button"
-        @click="changeFilter('inWork')"
-        :class="{ active: currentFilter == 'inWork' }"
+        @click="() => changeFilterHandler('inWork')"
+        :class="{ active: currentFilter === 'inWork' }"
       >
         In progress
       </button>
 
       <button
         type="button"
-        @click="changeFilter('completed')"
-        :class="{ active: currentFilter == 'completed' }"
+        @click="() => changeFilterHandler('completed')"
+        :class="{ active: currentFilter === 'completed' }"
       >
         Completed Tasks
       </button>
@@ -33,33 +33,33 @@
         v-for="task in tasks"
         :key="task.id"
         :task="task"
-        @removeTaskHandler="updateTasks"
-        @changeTaskHandler="updateTasks"
-        @isCompletedHandler="updateTasks"
+        @remove="updateTasks"
+        @change="updateTasks"
+        @changeCompleted="updateTasks"
       />
+      <!-- changeCompleted норм звучит? -->
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
-import { getTasks } from '@/api';
 import AddTask from '@/components/AddTask.vue';
 import TaskItem from '@/components/TaskItem.vue';
-import type { ToDo } from '@/types/types';
+import type { Todo } from '@/types/types';
 
-const tasks = ref<ToDo[]>([]);
-// interface ToDo {
-//   id: number;
-//   title: string;
-//   created: string; // ISO date string
-//   isDone: boolean;
-// }
-const currentFilter = ref<string>('all');
+const currentFilter = ref<'all' | 'inWork' | 'completed'>('all');
 
-const changeFilter = async (newFilter: string) => {
+const changeFilterHandler = async (
+  newFilter: 'all' | 'inWork' | 'completed',
+) => {
   currentFilter.value = newFilter;
-  await updateTasks();
+  //трай-кэтч ниже присвоения должен находиться?
+  try {
+    await updateTasks();
+  } catch (error) {
+    alert(`failed to change filter:, ${error}`);
+  }
 };
 
 const updateTasks = async () => {
@@ -71,23 +71,16 @@ const updateTasks = async () => {
   }
 };
 
-// const removeTaskHandler = async (id: number) => {
-//   await removeTask(id);
-//   await updateTasks();
-// };
-
-// onMounted(async () => {
-//   console.log('onMounted вызван');
-//   try {
-//     await updateTasks();
-//   } catch (error) {
-//     console.log('Ошибка при вызове updateTasks:', error);
-//   }
-//   console.log('onMounted завершен');
-// });
+const tasks = ref<Todo[]>([]);
+import { getTasks } from '@/api';
 
 onMounted(async () => {
-  await updateTasks();
+  try {
+    await updateTasks();
+  } catch (error) {
+    console.log('ошибка загрузки данных', error);
+    // нужно ли так кэтчить ошибку?
+  }
 });
 </script>
 
