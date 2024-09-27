@@ -5,26 +5,26 @@
     <nav>
       <button
         type="button"
-        @click="() => changeFilterHandler('all')"
+        @click="() => changeFilterHandler(TaskFilter.ALL)"
         :class="{ active: currentFilter === 'all' }"
       >
-        All
+        All({{ allTasksCount }})
       </button>
 
       <button
         type="button"
-        @click="() => changeFilterHandler('inWork')"
+        @click="() => changeFilterHandler(TaskFilter.IN_WORK)"
         :class="{ active: currentFilter === 'inWork' }"
       >
-        In progress
+        In progress({{ inWorkTasksCount }})
       </button>
 
       <button
         type="button"
-        @click="() => changeFilterHandler('completed')"
+        @click="() => changeFilterHandler(TaskFilter.COMPLETED)"
         :class="{ active: currentFilter === 'completed' }"
       >
-        Completed Tasks
+        Completed Tasks({{ completedTasksCount }})
       </button>
     </nav>
 
@@ -37,7 +37,6 @@
         @change="updateTasks"
         @changeCompleted="updateTasks"
       />
-      <!-- changeCompleted норм звучит? -->
     </div>
   </div>
 </template>
@@ -47,14 +46,16 @@ import { ref, onMounted } from 'vue';
 import AddTask from '@/components/AddTask.vue';
 import TaskItem from '@/components/TaskItem.vue';
 import type { Todo } from '@/types/types';
+import { TaskFilter } from '@/types/types';
 
-const currentFilter = ref<'all' | 'inWork' | 'completed'>('all');
+const currentFilter = ref<TaskFilter>(TaskFilter.ALL);
 
-const changeFilterHandler = async (
-  newFilter: 'all' | 'inWork' | 'completed',
-) => {
+const allTasksCount = ref<number>();
+const inWorkTasksCount = ref<number>();
+const completedTasksCount = ref<number>();
+
+const changeFilterHandler = async (newFilter: TaskFilter) => {
   currentFilter.value = newFilter;
-  //трай-кэтч ниже присвоения должен находиться?
   try {
     await updateTasks();
   } catch (error) {
@@ -66,6 +67,10 @@ const updateTasks = async () => {
   try {
     const response = await getTasks(currentFilter.value);
     tasks.value = response.data;
+
+    allTasksCount.value = response.info?.all;
+    inWorkTasksCount.value = response.info?.inWork;
+    completedTasksCount.value = response.info?.completed;
   } catch (error) {
     console.log('failed to fetch tasks:', error);
   }

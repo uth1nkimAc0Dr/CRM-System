@@ -23,3 +23,9 @@ export type MetaResponse<T, N> = {
     totalAmount: number;
   };
 };
+
+export enum TaskFilter {
+  ALL = 'all',
+  COMPLETED = 'completed',
+  IN_WORK = 'inWork',
+}

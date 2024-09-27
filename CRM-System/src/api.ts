@@ -1,5 +1,6 @@
 const BASE_URL = 'https://easydev.club/api/v1';
 import type { MetaResponse, Todo, TodoInfo, TodoRequest } from '@/types/types';
+import { TaskFilter } from '@/types/types';
 
 // остальные не нужно также переписывать с Promise<>?
 export const createTask = async (newTodo: TodoRequest): Promise<Todo | any> => {
@@ -17,10 +18,6 @@ export const createTask = async (newTodo: TodoRequest): Promise<Todo | any> => {
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
     }
-
-    // const data = (await response.json()) as Todo;
-    // console.log(data);
-    // смысла await'ить response нету, получается?
   } catch (error) {
     console.log('createTaskError is', error);
     throw error;
@@ -43,10 +40,6 @@ export const changeTask = async (
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
     }
-
-    // const data = await response.json();
-    // console.log(data);
-    // в этом также нету смысла, удалить?
   } catch (error) {
     console.log('changeTaskError is', error);
     throw error;
@@ -75,7 +68,7 @@ export const removeTask = async (id: number): Promise<void> => {
 };
 
 export const getTasks = async (
-  filter: 'all' | 'completed' | 'inWork',
+  filter: TaskFilter,
 ): Promise<MetaResponse<Todo, TodoInfo>> => {
   try {
     let query = '';
