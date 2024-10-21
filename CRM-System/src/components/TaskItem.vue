@@ -40,7 +40,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, reactive } from 'vue';
-import { changeTask, removeTask } from '@/api';
+import { changeTask, removeTask } from '@/api/todos';
 import type { Todo, TodoRequest } from '@/types/types';
 
 const isEditing = ref<boolean>(true);
@@ -103,7 +103,7 @@ const ChangeCompletedHandler = async (isDone: boolean) => {
 };
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .task-item {
   // задать одинаковые ширины дочеркам
   display: flex;
@@ -118,19 +118,12 @@ const ChangeCompletedHandler = async (isDone: boolean) => {
   .checkbox-container {
     margin-left: 4px;
   }
-  .title-container {
-  }
   .buttons-container {
     display: flex;
     flex-direction: row;
     gap: 10px;
     // width: 50px;
     // margin-right: 40px;
-
-    .edit-buttons-container {
-    }
-    .remove-button-container {
-    }
   }
 
   // .task-title {

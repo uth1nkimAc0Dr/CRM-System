@@ -8,7 +8,7 @@
 <script lang="ts" setup>
 import type { TodoRequest } from '@/types/types';
 import { ref } from 'vue';
-import { createTask } from '@/api';
+import { createTask } from '@/api/todos';
 
 const emit = defineEmits(['addTask']);
 const newTaskTitle = ref<string>('');
@@ -34,3 +34,9 @@ const createTaskHandler = async () => {
   newTaskTitle.value = '';
 };
 </script>
+
+<style scoped lang="scss">
+.addTask {
+  margin: 15px;
+}
+</style>

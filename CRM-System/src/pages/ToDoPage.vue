@@ -77,7 +77,7 @@ const updateTasks = async () => {
 };
 
 const tasks = ref<Todo[]>([]);
-import { getTasks } from '@/api';
+import { getTasks } from '@/api/todos';
 
 onMounted(async () => {
   try {
@@ -90,6 +90,9 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+.content {
+  text-align: center;
+}
 nav {
   display: flex;
   justify-content: center;

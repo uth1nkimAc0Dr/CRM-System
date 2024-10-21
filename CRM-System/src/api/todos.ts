@@ -46,8 +46,6 @@ export const changeTask = async (
   }
 };
 
-//Если пишу ": Promise<Todo>", то ошибка:
-// A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
 export const removeTask = async (id: number): Promise<void> => {
   try {
     const response = await fetch(`${BASE_URL}/todos/${id}`, {
